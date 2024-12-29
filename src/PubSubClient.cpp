@@ -7,6 +7,7 @@
 
 #include "PubSubClient.h"
 #include "Arduino.h"
+#include <avr/wdt.h>
 
 PubSubClient::PubSubClient() {
     this->_state = MQTT_DISCONNECTED;
@@ -255,6 +256,7 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
             lastInActivity = lastOutActivity = millis();
 
             while (!_client->available()) {
+		wdt_reset();
                 unsigned long t = millis();
                 if (t-lastInActivity >= ((int32_t) this->socketTimeout*1000UL)) {
                     _state = MQTT_CONNECTION_TIMEOUT;
@@ -288,6 +290,7 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
 boolean PubSubClient::readByte(uint8_t * result) {
    uint32_t previousMillis = millis();
    while(!_client->available()) {
+     wdt_reset();
      yield();
      uint32_t currentMillis = millis();
      if(currentMillis - previousMillis >= ((int32_t) this->socketTimeout * 1000)){
